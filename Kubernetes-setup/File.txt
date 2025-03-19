@@ -1,44 +1,56 @@
-Kubernete setup file
-(Run on both master and worker nodes)
+* Cluster = Group of multiple ec2 instance is known as a cluster
 
-1) update a linux system
-    sudo apt-get update –y
+* Kubernetes have two nodes : 1] master node
+			      2] worker node
 
-2)install a docker in linux
-    sudo apt-get install docker.io –y
+* Master node = 4 gb ram, 1 gb cpu, t3.small, kubeadm, kubectl, kubelet
+* worker node = 1 gb ram, 1 gb cpu, t2.micro, kubeadm, kubectl, kubelet
 
-3)for install google key because kubernetes is a google application and now it managed by CNCF(CLOUD NATIVE COMMITY)
-    sudo apt-get install apt-transport-https ca-certificates curl gnupg
-    sudo mkdir -p /etc/apt/keyrings
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+* Component of Kubernetes:
 
-4)kubernetes some kubernetes file get permission Permission (644=The owner can read and write, while the group and others can only read)
-    sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+1] kubeadm (kubeadmin) = Manage control plane of Kubernetes cluster
+2] kubectl (kubecontroller) = Command line tool to interact with a Kubernetes cluster
+3] kubelet (kube-node-agent) = Agent running on each worker node to maintain & run pods
 
-5)once again update linux setup and install kubeadm, kubectl and kubelet (kubernetes running command)
-    sudo apt-get update
-    sudo apt-get install -y kubectl kubeadm kubelet
+* Kubelet = Creates a pods but in that containers are created by docker
+
+* Network plugin : 1] calico
+		   2] flannel
+
+* Installation :
+
+* Launch an ec2 instance whose name is master node
+* Launch one more ec2 instance whose name is worker node
+* Install docker on both side
+
+* (Run on both nodes)
+
+	1] sudo apt-get update –y
+	2] sudo apt-get install docker.io –y
+	3] sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+	4] sudo mkdir -p /etc/apt/keyrings
+	5] curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o 	/etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	6] sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+	7] echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] 	https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+	8] sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+	9] sudo apt-get update
+	10] sudo apt-get install -y kubectl kubeadm kubelet
+
+* On Master Node :
+
+	1] sudo kubeadm init --ignore-preflight-errors=all
+	2] mkdir -p $HOME/.kube
+	3] sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+	4] sudo chown $(id -u):$(id -g) $HOME/.kube/config
+	5] kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/calico.yaml
+	6] kubeadm token create --print-join-command
  
-On Master
+	[add port 6443 in both master and worker node]
 
-1)generate a master node token key for communication with worker node setup 
-    sudo kubeadm init --ignore-preflight-errors=all
-    mkdir -p $HOME/.kube
-    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-    sudo chown $(id -u):$(id -g) $HOME/.kube/config
-    kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.0/manifests/calico.yaml
-    kubeadm token create --print-join-command
- 
-[add port 6443 in both master and worker node]
- 
-On Worker:
-Use kubeadm join command with token (copy the command from master and paste on worker)
- 
-On Master:
-1)for checking nodes
-    kubectl get nodes
- 
-given in last after processing done
-kubeadm join 172.31.19.6:6443 --token bak5cj.ezllaqgelzdv3lyh \ --discovery-token-ca-cert-hash sha256:c0183f00b45a9d16c1f27893696c8f7dad3ca47567ad4a770257fb425662303a
+* On Worker Node :
+
+	1] Use kubeadm join command with token (copy the command from master and paste on worker)
+
+* On Master Node :
+
+	1] kubectl get nodes
